@@ -1,4 +1,4 @@
-# Borer Explorer 1D
+# Borer Explorer 1D v1.0
 Borer Explorer is an example of sequenced programming using functions and sequences to read and alter data including images.
 
 ![Example of borer in action](ss.png)
@@ -8,3 +8,6 @@ A small program called a borer runs on an image, and each number in an initial s
 The complexity of the sequence and the image matter, and give different results. This is a starting example of the power of sequenced programming.
 
 When the borer runs out of steam it stops, and requires more input to continue ( I will put this in a future example ).
+
+# To run
+Download and extract first, then run index.html. Built using Chrome.
