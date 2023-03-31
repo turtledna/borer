@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="js/block.js"></script>
+<script src="js/borer.js"></script>
+<script src="js/codex.js"></script>
+<script src="js/color.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/script.js"></script>
+</head>
+<body>
+<h1>Borer Explorer v1.0</h1>
+<div id="numbers">
+</div>
+<div style="width: 300px; height:300px; position: relative;">
+<canvas id="script" width="300" height="300" style="position:absolute;"></canvas>
+<canvas id="borer" width="500" height="500" style="position:absolute;"></canvas>
+</div>
+<div style="padding:50px;">
+<h2>The borer</h2>
+<canvas id="borerFrames" width="100" height="100" style="vertical-align:top; float:left;"></canvas>
+The borer runs on an image, and each number in the sequence relates to a function in the codex. In this way the borer has momentum which allows it to travel the image and apply changes.<br>
+<br>
+The complexity of the sequence and the image matter, and give different results. This is a 
+starting example of the power of sequenced programming.<br>
+<br>
+When the borer runs out of steam it stops, and requires more input to continue ( I will put this in a future example ).<br>
+<br>
+Controlling the effects of the borer on the image remain difficult.
+</div>
+<script language="Javascript">
+var c = document.getElementById("script");
+var ctx = c.getContext("2d");
+var script = new bexScript();
+script.ctx( ctx );
+script.generate( 60, 60, 5, 5 );
+var colors = [ 
+	[ 0,     0,   0, 255 ], 
+	[ 0,     0, 255, 255 ], 
+	[ 255,   0,   0, 255 ], 
+	[ 0,   255,   0, 255 ],
+	[ 0,    75,   0, 255 ], 
+	[ 100,  75, 255, 255 ], 
+	[ 155,   0, 100, 255 ], 
+	[ 75,  155,   0, 255 ] 
+];
+script.randomize( 0, 0, 60, 60, colors );
+script.log();
+
+var borer = new bexBorer();
+borer.attach( script );
+borer.to( 0 );
+borer.program( codex );
+borer.programindex( 0 );
+setTimeout( frame, 30 );
+function frame()
+{
+	for ( var i = 0; i < 50; i++ )
+		borer.play();
+	borer.paint();
+
+	if ( borer.script.changed )
+		borer.script.paint();
+	setTimeout( frame, 30 );
+}
+var frameAt = 0;
+setTimeout( frames, 100 );
+function frames()
+{
+	//console.log( 'borer=', borer );
+	if ( !borer.frames[ frameAt ] )
+	{
+		frameAt = 0;
+		setTimeout( frames, 3000 );
+		return;
+	}
+
+	var c = document.getElementById( "borerFrames" );
+	var ctx = c.getContext("2d");
+	ctx.fillStyle = "white";
+	ctx.fillRect( 0, 0, 
+		script.getPixelNX() * script.getPixelWidth(), 
+		script.getPixelNY() * script.getPixelHeight() );
+
+	//var blocks = borer.script.getBlocks();
+	//blocks.paint( ctx, script.getPixelWidth(), script.getPixelHeight() );
+	paintBody( script );
+	function paintBody( script )
+	{
+		// Setup a palette for codex codes
+		var palette = [
+			'#000000','#222034','#45283c','#663931',
+			'#8f563b','#df7126','#eec39a','#fbf236',
+			'#99e550','#6abe30','#37946e','#4b692f',
+			'#524b24','#323c39','#3f3f74','#306082',
+			'#5b6ee1','#639bff','#5fcde4','#cbdbfc',
+			'#ffffff','#9badb7','#847e87','#696a6a',
+			'#595652','#76428a','#ac3232','#d95763',
+			'#d77bba','#8f974a','#8a6f30','#333333'
+		];
+
+		// Fill the body
+		var frame = borer.frames[ frameAt ];
+		//console.log( 'frame=', frame );
+		var linex = Math.ceil( Math.sqrt( frame.length ) );
+		var liney = linex;
+		for ( var i = 0; i < frame.length; i++ )
+		{
+			var x = i % linex;
+			var y = Math.floor( i / linex );
+			x *= script.getPixelWidth();
+			y *= script.getPixelHeight();
+			var code = frame[ i ];
+			var color = palette[ code ];
+			ctx.fillStyle = color;
+			ctx.fillRect( x, y, 5, 5 );
+			
+		}
+	}
+	frameAt++;
+	setTimeout( frames, 100 );
+}
+
+//console.log( borer );
+</script>
+
+</body>
+</html>
