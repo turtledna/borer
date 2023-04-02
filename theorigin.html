@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="borerv101/js/block.js"></script>
+<script src="borerv101/js/borer.js"></script>
+<script src="borerv101/js/codex.js"></script>
+<script src="borerv101/js/color.js"></script>
+<script src="borerv101/js/pixel.js"></script>
+<script src="borerv101/js/scanner.js"></script>
+<script src="borerv101/js/script.js"></script>
+<script language="Javascript">
+/*29, 6, 2, 11, 15, 28, 2, 22, 23, 27, 6, 25, 17, 29, 2, 30, 7, 23, 17, 28, 10, 29, 4, 26, 22, 26, 24, 9, 1, 27, 24, 15, 4, 27, 9, 30, 8, 10, 19, 13, 12, 7, 8, 17, 8, 1, 12, 19, 7, 6, 28, 26, 23, 29, 31, 29, 11, 4, 27, 28, 24, 21, 27, 13*/
+</script>
+</head>
+<body>
+<a href="index.html">An introduction</a> <a>Using an origin</a> <a href="thescanner.html">The scanner</a><!--<a href="theseconddimension2d.html">The second dimension (2d)</a>-->
+<h1 style="margin-bottom:5px;">Borer Explorer v1.0.1</h1>
+
+<div style="padding:5px;">
+See <a href="https://github.com/turtledna/borer" alt="My Github page!">https://github.com/turtledna/borer</a>
+</div>
+<div id="numbers">
+</div>
+<h2>The sequence</h2>
+<div style="margin-left:15px;">
+<textarea style="width:100%; height:60px; padding:5px; border:1px solid red; " id="bexSequence">29, 6, 2, 11, 15, 28, 2, 22, 23, 27, 6, 3, 3, 1, 2, 30, 1, 23, 17, 1, 10, 29, 4, 26, 22, 26, 24, 9, 1, 27, 24, 15, 4, 27, 9, 30, 8, 10, 19, 13, 12, 7, 8, 17, 8, 1, 12, 19, 7, 6, 8, 26, 23, 29, 31, 29, 11, 4, 27, 28, 24, 21, 27, 13
+</textarea>
+</div>
+<div>
+<input type="button" id="bexSequenceUpdate" value="Update">
+</div>
+<div style="width: 300px; height:300px; margin:15px; position: relative; float:left;">
+<canvas id="script" width="300" height="300" style="position:absolute;"></canvas>
+<canvas id="borer" width="500" height="500" style="position:absolute;"></canvas>
+</div>
+
+Try changing the sequence to any values from 0 to 31. You'll see the program still 
+works.
+<div style="padding:25px;">
+<h2>The origin</h2>
+This example shows how having an origin function in the codex gives a line 
+about the center. 
+
+<div style="float:left;">
+<div style="padding:15px; margin:15px; background:#cacaca">
+codex.push ( <br>
+&nbsp;&nbsp;function origin( borer ) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;borer.index = borer.origin;<br>
+&nbsp;} <br>
+);
+</div>
+</div>
+
+This is because function calls tend to be concentrated on where the 
+borer travels to, and if it is consistantly travelling back to the origin ( here the center ),
+our intensities will topple up there the most. <br>
+<br>
+I'll demonstrate later how we can use that line to open up a better visual of what's happening 
+near the center, and use it to progress our program.
+
+<h2>The curve</h2>
+Curves play a huge role in our lives and in computer graphics, and they are one of the 
+most difficult things to recreate. You will notice our program creates it's own curves, 
+an interaction with the Math.random() function we used to create our image.
+
+<h2>Curiosity as gravity</h2>
+The origin holds curiosity for us all. As the program progresses I will explain how 
+curiosity for the origin in bio-programming can explain gravity in some data and 
+simulation theories and how we can use such curiosity to program entities that themselves are curious about their origin. Just as our program gravitates to the center line, what 
+we create holds a bond with it's creation and creation date.
+
+</div>
+<script language="Javascript">
+var c = document.getElementById("script");
+var ctx = c.getContext("2d");
+var script = new bexScript();
+script.ctx( ctx );
+script.generate( 64, 64, 5, 5 );
+var colors = [ 
+	[ 0,     0,   0, 255 ] 
+	//[ 0,     0, 255, 255 ], 
+	//[ 255,   0,   0, 255 ], 
+	//[ 0,   255,   0, 255 ],
+	//[ 0,    75,   0, 255 ], 
+	//[ 100,  75, 255, 255 ], 
+	//[ 155,   0, 100, 255 ], 
+	//[ 75,  155,   0, 255 ] 
+];
+script.randomize( 0, 0, 64, 64, colors );
+script.log();
+
+var borer = new bexBorer();
+borer.attach( script );
+borer.to( 2080 );
+borer.program( codex );
+borer.programindex( 0 );
+setTimeout( frame, 30 );
+function frame()
+{
+	for ( var i = 0; i < 50; i++ )
+		borer.play();
+	borer.paint();
+
+	//if ( borer.script.changed )
+		borer.script.paint();
+	setTimeout( frame, 30 );
+}
+var frameAt = 0;
+setTimeout( frames, 100 );
+function frames()
+{
+	//console.log( 'borer=', borer );
+	if ( !borer.frames[ frameAt ] )
+	{
+		frameAt = 0;
+		setTimeout( frames, 3000 );
+		return;
+	}
+
+	var c = document.getElementById( "borerFrames" );
+	var ctx = c.getContext("2d");
+	ctx.fillStyle = "white";
+	ctx.fillRect( 0, 0, 
+		script.getPixelNX() * script.getPixelWidth(), 
+		script.getPixelNY() * script.getPixelHeight() );
+
+	//var blocks = borer.script.getBlocks();
+	//blocks.paint( ctx, script.getPixelWidth(), script.getPixelHeight() );
+	paintBody( script );
+	function paintBody( script )
+	{
+		// Setup a palette for codex codes
+		var palette = [
+			'#000000','#222034','#45283c','#663931',
+			'#8f563b','#df7126','#eec39a','#fbf236',
+			'#99e550','#6abe30','#37946e','#4b692f',
+			'#524b24','#323c39','#3f3f74','#306082',
+			'#5b6ee1','#639bff','#5fcde4','#cbdbfc',
+			'#ffffff','#9badb7','#847e87','#696a6a',
+			'#595652','#76428a','#ac3232','#d95763',
+			'#d77bba','#8f974a','#8a6f30','#333333'
+		];
+
+		// Fill the body
+		var frame = borer.frames[ frameAt ];
+		//console.log( 'frame=', frame );
+		var linex = Math.ceil( Math.sqrt( frame.length ) );
+		var liney = linex;
+		for ( var i = 0; i < frame.length; i++ )
+		{
+			var x = i % linex;
+			var y = Math.floor( i / linex );
+			x *= script.getPixelWidth();
+			y *= script.getPixelHeight();
+			var code = frame[ i ];
+			var color = palette[ code ];
+			ctx.fillStyle = color;
+			ctx.fillRect( x, y, 5, 5 );
+			
+		}
+	}
+	frameAt++;
+	setTimeout( frames, 100 );
+}
+
+
+//console.log( borer );
+</script>
+<script language="javascript">
+document.getElementById( "bexSequenceUpdate" ).addEventListener( "click", bexSequenceChange );
+function bexSequenceChange()
+{
+	console.log('clicked');
+	var field = document.getElementById( "bexSequence" );
+	console.log( field );
+	var sequence = field.value;
+	console.log(' sequence=', sequence );
+	borer.sequence = sequence;
+	borer.body = new Array();
+	//alert('sequence=', field.value );
+	var s = sequence.split( "," ).map(function(item) {
+  		return item.trim();
+	});;
+	for ( var i = 0; i < s.length; i++)
+		borer.body.push( s[ i ] );
+}
+</script>
+</body>
+</html>

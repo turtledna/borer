@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="borerv102/js/block.js"></script>
+<script src="borerv102/js/borer.js"></script>
+<script src="borerv102/js/codex.js"></script>
+<script src="borerv102/js/color.js"></script>
+<script src="borerv102/js/pixel.js"></script>
+<script src="borerv102/js/scanner.js"></script>
+<script src="borerv102/js/script.js"></script>
+<script language="Javascript">
+/*29, 6, 2, 11, 15, 28, 2, 22, 23, 27, 6, 25, 17, 29, 2, 30, 7, 23, 17, 28, 10, 29, 4, 26, 22, 26, 24, 9, 1, 27, 24, 15, 4, 27, 9, 30, 8, 10, 19, 13, 12, 7, 8, 17, 8, 1, 12, 19, 7, 6, 28, 26, 23, 29, 31, 29, 11, 4, 27, 28, 24, 21, 27, 13*/
+</script>
+</head>
+<body>
+<a href="index.html">An introduction</a> <a href="theorigin.html">Using an origin</a> <a>The scanner</a><!--<a href="theseconddimension2d.html">The second dimension (2d)</a>-->
+<h1 style="margin-bottom:5px;">Borer Explorer v1.0.2</h1>
+
+<div style="padding:5px;">
+See <a href="https://github.com/turtledna/borer" alt="My Github page!">https://github.com/turtledna/borer</a>
+</div>
+<div id="numbers">
+</div>
+<!--<h2>The sequence</h2>
+<div style="margin-left:15px;">
+<textarea style="width:100%; height:60px; padding:5px; border:1px solid red; " id="bexSequence">1, 23, 14, 23, 19, 22, 19, 6, 15, 18, 23, 16, 8, 16, 4, 26, 1, 23, 16, 16, 14, 15, 15, 14, 6, 2, 12, 27, 3, 15, 5, 1, 1, 18, 3, 7, 21, 20, 24, 20, 12, 5, 29, 2, 14, 16, 16, 9, 15, 20, 3, 24, 15, 15, 10, 17, 9, 11, 2, 13, 28, 17, 0, 7, 25, 2, 5, 11, 7, 5, 25, 15, 11, 27, 12, 28, 30, 23, 15, 15, 28, 21, 15, 28, 17, 13, 22, 30, 0, 2, 29, 30, 16, 18, 11, 14, 21, 18, 23, 31
+</textarea>
+</div>
+
+<div>
+<input type="button" id="bexSequenceUpdate" value="Update">
+</div>
+-->
+<div style="width: 320px; height:320px; margin:15px; position: relative; float:left;">
+<canvas id="script" width="320" height="320" style="position:absolute;"></canvas>
+<canvas id="borer0" width="500" height="500" style="position:absolute;"></canvas>
+<canvas id="borer1" width="500" height="500" style="position:absolute;"></canvas>
+</div>
+
+<div style="padding:25px;">
+<h2>The scanner</h2>
+Part of our code is adding something called a scanner. There are several functions 
+which control the scanner, some of which I'll list here. You might want to think 
+of the scanner as a small creature which has been set loose on top of borer, or within 
+borer, to explore the program and execute code in different parts of the program. <br>
+<br>
+In this example, the scanner is the blue square. You will see them start up in the top 
+left corner. Because the body of our borer is a circular array, and we move the scanners in the <b>+</b> and <b>-</b> direction, some scanners move to the end of the body first. We add about 10 of these 
+scanners, and they slowly age until they die (age 90). It's possible this is your first 
+introduction to bio-programming, however basic, and we've created a little artificial life-form. It's nice to think of it this way, as we progress the program.
+
+<h2>Creating the scanner</h2>
+Here we add a single instance <b>scanb</b> (scanner begin) which carries all the scanners, and we do this once.
+<div style="width:100%;">
+<div>
+<div style="padding:15px; margin:15px; background:#cacaca">
+codex.push (<br>
+&nbsp;&nbsp;function scanb( borer ) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( borer.scanners )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return; // one instance<br>
+&nbsp;&nbsp;&nbsp;&nbsp;borer.scanners = new bexScanners();<br>
+&nbsp;&nbsp;}<br>
+);<br>
+</div>
+</div>
+</div>
+
+and then we add <b>scanm</b> (scanner make). Note we only want 5 scanners active for now!
+<div style="width:100%;">
+<div>
+<div style="padding:15px; margin:15px; background:#cacaca">
+codex.push (<br>
+&nbsp;&nbsp;function scanm( borer ) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( !borer.scanners )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( borer.scanners.length() > 10 )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var scanner = new bexScanner();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;borer.scanners.add( scanner );<br>
+&nbsp;&nbsp;}<br>
+);
+</div>
+</div>
+</div>
+
+
+<h2>Motion</h2>
+Once we have our scanners being created, we need to add motion to them. Since they sit 
+on top of the borer's body, we can use that index and move them up and down. 
+<div style="width:100%;">
+<div>
+<div style="padding:15px; margin:15px; background:#cacaca">
+codex.push ( <br>
+&nbsp;&nbsp;function scani( borer ) { <br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( !borer.scanners ) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return 0; <br>
+&nbsp;&nbsp;&nbsp;&nbsp;var i = borer.scanners.at();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var range = borer.body.length;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( i )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;borer.scanners.move( i, range );<br>
+&nbsp;&nbsp;} <br>
+);
+</div>
+</div>
+</div>
+Note that we keep the scanner within the range of the body. There is never a situation 
+where the scanner moves from the body of the borer, that is, it <i>belongs</i> to the 
+borer. We might allow it to in a future version, but where does it go? That's a good 
+question.<br>
+<br>
+We can also move our scanner to the current position of the white square. The <b>pos</b> 
+executes each unit of the body of the borer once each pass, so we can 
+use it to lift the scanner and reposition it there.
+
+<div style="width:100%; padding:15px; margin:15px; background:#cacaca">
+codex.push (<br>
+&nbsp;&nbsp;function scanp( borer ) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( !borer.scanners )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var cursed = borer.scanners.cursed();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( cursed )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursed.pos = borer.pos;<br>
+&nbsp;&nbsp;}<br>
+);<br>
+</div>
+
+<h2>Passing execution to the scanner</h2>
+Lastly, we want the currently cursed scanner to be able to execute functions it finds. This only happens when the borer <b>pos</b> hits the <b>scane</b> function. 
+
+<div style="width:100%; padding:15px; margin:15px; background:#cacaca">
+codex.push (<br>
+&nbsp;&nbsp;function scane( borer ) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( borer.executing )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;borer.executing = 1;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( !borer.scanners )<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var cursed = borer.scanners.cursed();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var pos = cursed.pos;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var code = borer.body[ pos ];<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var f = borer.codex[ code ];<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if ( f ) <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f( borer );<br>
+&nbsp;&nbsp;&nbsp;&nbsp;borer.executing = 0;<br>
+&nbsp;&nbsp;}<br>
+);
+</div>
+Here we mark the borer as executing to prevent chain execution, which causes an error. 
+We could in practice allow some chain execution, but we'll learn to control it in a 
+later tutorial. That's it!
+</div>
+<script language="Javascript">
+var c = document.getElementById("script");
+var ctx = c.getContext("2d");
+var script = new bexScript();
+script.ctx( ctx );
+script.generate( 32, 32, 10, 10 );
+var colors = [ 
+	[ 0,     0,   0, 255 ]
+];
+script.randomize( 0, 0, 32, 32, colors );
+script.log();
+
+var borers = new Array();
+
+var sequence = [ 1, 23, 14, 23, 19, 22, 19, 6, 15, 18, 23, 16, 8, 16, 4, 26, 1, 23, 16, 16, 14, 15, 15, 14, 6, 2, 12, 27, 3, 15, 5, 1, 1, 18, 3, 7, 21, 20, 24, 20, 12, 5, 29, 2, 14, 16, 16, 9, 15, 20, 3, 24, 15, 15, 10, 17, 9, 11, 2, 13, 28, 17, 0, 7, 25, 2, 5, 11, 7, 5, 25, 15, 11, 27, 12, 28, 30, 23, 15, 15, 28, 21, 15, 28, 17, 13, 22, 30, 0, 2, 29, 30, 16, 18, 11, 14, 21, 18, 23, 31 ];
+
+var borer;
+borer = new bexBorer();
+borer.attach( script );
+borer.canvas( 'borer0' );
+borer.from( 528 );
+borer.feed( sequence );
+borer.program( codex );
+
+borers.push( borer );
+
+sequence = [ 1, 2, 3, 4, 5, 6, 7, 8, 23, 2, 3, 14, 23, 19, 22, 19, 2, 4, 6, 9, 15, 20, 3, 24, 15, 15, 28, 10, 17 ];
+
+borer = new bexBorer();
+borer.attach( script );
+borer.canvas( 'borer1' );
+borer.from( 264 );
+borer.feed( sequence );
+borer.program( codex );
+console.log( 'start borer=', borer );
+borers.push( borer );
+
+setTimeout( frame, 30 );
+function frame()
+{
+	for ( var x = 0; x < borers.length; x++ )
+	{
+		var b = borers[ x ];
+		for ( var i = 0; i < 1; i++ )
+			b.play();
+		b.paint();
+		console.log( b );
+	}
+
+	if ( script.changed )
+		script.paint();
+	setTimeout( frame, 30 );
+}
+
+</script>
+<script language="javascript">
+document.getElementById( "bexSequenceUpdate" ).addEventListener( "click", bexSequenceChange );
+function bexSequenceChange()
+{
+	console.log('clicked');
+	var field = document.getElementById( "bexSequence" );
+	console.log( field );
+	var sequence = field.value;
+	console.log(' sequence=', sequence );
+	borer.sequence = sequence;
+	borer.body = new Array();
+	//alert('sequence=', field.value );
+	var s = sequence.split( "," ).map(function(item) {
+  		return item.trim();
+	});;
+	for ( var i = 0; i < s.length; i++)
+		borer.body.push( s[ i ] );
+}
+</script>
+</body>
+</html>
