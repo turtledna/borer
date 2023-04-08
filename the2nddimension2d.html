@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="borerv103/js/block.js"></script>
+<script src="borerv103/js/borer.js"></script>
+<script src="borerv103/js/codex_basic.js"></script>
+<script src="borerv103/js/codex_scan.js"></script>
+<script src="borerv103/js/codex_touch.js"></script>
+<script src="borerv103/js/color.js"></script>
+<script src="borerv103/js/pixel.js"></script>
+<script src="borerv103/js/scanner.js"></script>
+<script src="borerv103/js/script.js"></script>
+<script language="Javascript">
+/*29, 6, 2, 11, 15, 28, 2, 22, 23, 27, 6, 25, 17, 29, 2, 30, 7, 23, 17, 28, 10, 29, 4, 26, 22, 26, 24, 9, 1, 27, 24, 15, 4, 27, 9, 30, 8, 10, 19, 13, 12, 7, 8, 17, 8, 1, 12, 19, 7, 6, 28, 26, 23, 29, 31, 29, 11, 4, 27, 28, 24, 21, 27, 13*/
+</script>
+</head>
+<body>
+<script language="Javascript" src="borerv105/js/header.js"></script>
+<div style="clear:both;"></div>
+
+<h1 style="margin-bottom:5px;">Borer Explorer v1.0.3</h1>
+
+<div id="numbers">
+</div>
+<!--<h2>The sequence</h2>
+<div style="margin-left:15px;">
+<textarea style="width:100%; height:60px; padding:5px; border:1px solid red; " id="bexSequence">1, 23, 14, 23, 19, 22, 19, 6, 15, 18, 23, 16, 8, 16, 4, 26, 1, 23, 16, 16, 14, 15, 15, 14, 6, 2, 12, 27, 3, 15, 5, 1, 1, 18, 3, 7, 21, 20, 24, 20, 12, 5, 29, 2, 14, 16, 16, 9, 15, 20, 3, 24, 15, 15, 10, 17, 9, 11, 2, 13, 28, 17, 0, 7, 25, 2, 5, 11, 7, 5, 25, 15, 11, 27, 12, 28, 30, 23, 15, 15, 28, 21, 15, 28, 17, 13, 22, 30, 0, 2, 29, 30, 16, 18, 11, 14, 21, 18, 23, 31
+</textarea>
+</div>
+
+<div>
+<input type="button" id="bexSequenceUpdate" value="Update">
+</div>
+-->
+<div style="width: 320px; height:320px; margin:15px; position: relative; float:left;">
+<canvas id="script" width="320" height="320" style="position:absolute;"></canvas>
+<canvas id="borer0" width="500" height="500" style="position:absolute;"></canvas>
+<canvas id="borer1" width="500" height="500" style="position:absolute;"></canvas>
+</div>
+
+<div style="padding:25px;">
+<h2>Adding a 2nd dimension</h2>
+Earlier we talked about expanding the center line created when we use an origin function, 
+that is, the borer consistently returns to the center and a line is created because of it. <br>
+<br>We're going to take the line that is created and add a 2nd dimension function. Simply, 
+we move our borer in the X direction along our index, so we will introduce a Y direction. There's a snag, in that we don't actually know how wide our borer is, for example 
+because we are working on 1D arrays, there is no Y direction. Instead, I use
+the scanner positions to reposition the borer, and it moves around the image more. What we're looking for is a fair distribution across an image, so that we can say that our borer is greedy. A greedy borer is a happy borer.
+</div>
+<script language="Javascript">
+var codex = new Array();
+for ( var i = 0; i < codex_basic.length; i++ )
+	codex.push( codex_basic[ i ] );
+for ( var i = 0; i < codex_scan.length; i++ )
+	codex.push( codex_scan[ i ] );
+for ( var i = 0; i < codex_touch.length; i++ )
+	codex.push( codex_touch[ i ] );
+var c = document.getElementById("script");
+var ctx = c.getContext("2d");
+var script = new bexScript();
+script.ctx( ctx );
+script.generate( 32, 32, 10, 10 );
+var colors = [ 
+	[ 0,     0,   0, 255 ]
+];
+script.randomize( 0, 0, 32, 32, colors );
+script.log();
+
+var borers = new Array();
+
+var sequence = [ 32, 9, 15, 2, 7, 29, 33, 11, 16, 26, 0, 16, 19, 9, 0, 7, 6, 11, 30, 2, 9, 12, 18, 18, 13, 17, 18, 5, 33, 32, 27, 2, 10, 23, 10, 2, 17, 22, 3, 9, 19, 27, 21, 21, 6, 17, 15, 12, 18, 8, 30, 25, 0, 20, 0, 8, 5, 2, 30, 25, 1, 11, 28, 18, 34, 17, 34, 20, 16, 14, 2, 9, 15, 17, 11, 36, 5, 1, 21, 19, 26, 31, 15, 2, 26, 17, 32, 35, 1, 35, 32, 14, 31, 2, 5, 1, 8, 1, 36, 5, 24, 31, 14, 36, 33, 3, 33, 17, 34, 21, 0, 17, 3, 33, 24, 5, 32, 28, 15, 31, 29, 24, 26, 18, 17, 34, 12, 30, 18, 1, 34, 24, 13, 7, 7, 28, 5, 31, 18, 4, 35, 5, 29, 33, 28, 23, 35, 8, 23, 23, 15, 31, 34, 29, 26, 30, 18, 15, 22, 6, 32, 28, 6, 35, 3, 33, 6, 23, 24, 3, 22, 0, 16, 12, 2, 7, 17, 19, 32, 32, 6, 13, 9, 19, 23, 15, 26, 22, 0, 29, 2, 6, 16, 23, 13, 10, 18, 10, 23, 16, 23, 36, 7, 20, 22, 25, 29, 24, 8, 0, 20, 22, 25, 15, 31, 8, 15, 14, 26, 10, 20, 17, 31, 13, 26, 17, 19, 32, 35, 7, 9, 7, 30, 16, 8, 35, 22, 1, 6, 2, 4, 24, 6, 35, 0, 18, 15, 2, 14, 6    ];
+
+var borer;
+borer = new bexBorer();
+borer.attach( script );
+borer.canvas( 'borer0' );
+borer.from( 528 );
+borer.feed( sequence );
+borer.program( codex );
+
+borers.push( borer );
+
+setTimeout( frame, 30 );
+function frame()
+{
+	for ( var x = 0; x < borers.length; x++ )
+	{
+		var b = borers[ x ];
+		for ( var i = 0; i < 500; i++ )
+			b.play();
+		b.paint();
+		console.log( b );
+	}
+
+	if ( script.changed )
+		script.paint();
+	setTimeout( frame, 30 );
+}
+
+</script>
+</body>
+</html>
