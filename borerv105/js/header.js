@@ -17,7 +17,10 @@ technologies.
 </div>
 </div>
 </div>
-
+<div style="width:100%; background:#cccccc;">
+<h2>Tools</h2>
+<a href="imagetocolorpalette/index.html">Image to Color Palette</a>
+</div>
 <div style="clear:both;"></div>
 <div style="width:100%; background: #ccff99;">
 <h2>Guide</h2>
