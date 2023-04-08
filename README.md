@@ -1,6 +1,6 @@
 # Borer Explorer 1D v1.0.5
 Borer Explorer is an example of sequenced programming using functions and sequences to read and alter data including images.
-[See turtledna.neocities.org for a working demo](http//turtledna.neocities.org)
+[Working demo](http//turtledna.neocities.org)
 
 ![Example of borer in action](ss.png)
 
