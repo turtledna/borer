@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="borer/js/block.js"></script>
+<script src="borer/js/borer.js"></script>
+<script src="borer/js/codex_basic.js"></script>
+<script src="borer/js/codex_scan.js"></script>
+<script src="borer/js/codex_touch.js"></script>
+<script src="borer/js/color.js"></script>
+<script src="borer/js/pixel.js"></script>
+<script src="borer/js/scanner.js"></script>
+<script src="borer/js/script.js"></script>
+<script language="Javascript">
+/*29, 6, 2, 11, 15, 28, 2, 22, 23, 27, 6, 25, 17, 29, 2, 30, 7, 23, 17, 28, 10, 29, 4, 26, 22, 26, 24, 9, 1, 27, 24, 15, 4, 27, 9, 30, 8, 10, 19, 13, 12, 7, 8, 17, 8, 1, 12, 19, 7, 6, 28, 26, 23, 29, 31, 29, 11, 4, 27, 28, 24, 21, 27, 13*/
+</script>
+</head>
+<body>
+<h1 style="margin-bottom:5px;">Image to Color Palette Converter</h1>
+
+<canvas id="image"></canvas>
+
+<div id="sample" style="width: 320px; height:320px; margin:15px; position: relative; float:left;">
+<canvas id="script" width="320" height="320" style="position:absolute; z-index:0;"></canvas>
+<canvas id="borer0" width="320" height="320" style="position:absolute; z-index:1;"></canvas>
+
+</div>
+<div id="appWrapper" style="position: absolute; background:yellow; width: 100%;">
+<div id="app"></div>
+</div>
+<input type="button" id="borerStop" value="Stop"> 
+<input type="button" id="borerStart" value="Start">
+
+<div style="padding:25px;">
+<h2>Color palette from image</h2>
+One of the utilities of a scanner is that we can play with colors easily. Here I've created a scanner which builds a color palette from a small image.
+
+<div style="padding:10px; z-index:3;">
+<form id="upload">
+	<label for="file"></label>
+	<input type="file" id="file" accept="image/*">
+
+	<button>Upload</button>
+</form>
+</div>
+<div id="colorWrapper" style="100%;">
+<div id="colorinfo" style="position: static; width: 100%;">
+</div>
+</div>
+
+
+
+<script language="Javascript">
+var borers = new Array();
+var scripts = new Array();
+
+document.addEventListener( 'click', borerClickFn );
+
+function borerClickFn( event )
+{
+	console.log( 'event=', event );
+	if ( event.srcElement.id == 'borerStop' )
+	{
+		console.log( 'borers stopped' );
+		for ( var i = 0; i < borers.length; i++ )
+		{
+			var b = borers[ i ];
+			b.stop();
+		}
+	}
+	if ( event.srcElement.id == 'borerStart' )
+	{
+		console.log( 'borers started' );
+		for ( var i = 0; i < borers.length; i++ )
+		{
+			var b = borers[ i ];
+			b.start();
+		}
+	}
+}
+
+/**
+ * Handle submit events
+ * @param  {Event} event The event object
+ */
+function handleSubmit (event) {
+
+	// Stop the form from reloading the page
+	event.preventDefault();
+
+	// If there's no file, do nothing
+	if ( !file.value.length ) return;
+
+	// Create a new FileReader() object
+	let reader = new FileReader();
+
+	// Setup the callback event to run when the file is read
+	reader.onload = logFile;
+
+	// Read the file
+	console.log( file.files[ 0 ] );
+	reader.readAsDataURL( file.files[0] );
+}
+// Get the form and file field
+let form = document.querySelector('#upload');
+let file = document.querySelector('#file');
+let app = document.querySelector('#app');
+
+// Listen for submit events
+form.addEventListener('submit', handleSubmit);
+
+/**
+ * Log the uploaded file to the console
+ * @param {event} Event The file loaded event
+ */
+function logFile (event) {
+	let str = event.target.result;
+	let img = document.createElement('img');
+	img.src = str;
+	//app.append(img);
+
+	img.onload = function uploadedFile()
+	{
+		console.log( 'loaded str=', str );
+		console.log( 'loaded image=', img );
+		console.log( 'width=', img.naturalWidth );
+		console.log( 'height=', img.naturalHeight );
+
+		borers = new Array();
+		scripts = new Array();
+
+		document.getElementById( 'sample' );
+		sample.innerHTML = '';
+		sample.width = 0;
+		sample.height = 0;
+
+		/**
+		 * Data
+		 * Get the data from the uploaded image file
+		 * Uses a temporary canvas which is cleared and removed
+		 */
+		var canvas = document.getElementById( 'image' );
+		canvas.width = img.naturalWidth;
+		canvas.height = img.naturalHeight;
+		context = canvas.getContext('2d');
+		context.drawImage( img, 0, 0 );
+		var data = context.getImageData( 0, 0, img.naturalWidth, img.naturalHeight );
+		context.clearRect( 0, 0, img.naturalWidth, img.naturalHeight );
+		canvas.width = 0;
+		canvas.height = 0;
+
+		var scaleX = img.naturalWidth;
+		var scaleY = img.naturalHeight;
+
+		var wrapper = document.createElement( 'div' );
+		wrapper.style.position = "relative";
+		wrapper.style.width = "100%";
+		app.append( wrapper );
+
+		/**
+		 * Script
+		 * Loads the background image
+		 */
+		var imageX = img.naturalWidth;
+		var imageY = img.naturalHeight;
+		var unitX = 1;
+		var unitY = 1;
+		var append = 0;
+		var c = document.getElementById( 'script0' );
+		if ( !c )
+		{
+			c    = document.createElement( 'canvas' );
+			c.id = 'script0';
+			c.style.position 	 = "absolute";
+			append = 1;
+		}
+		var width = Math.min( 300, imageX );
+		var height = Math.min( 200, imageY );
+		var sX = width / ( imageX * unitX );
+		var sY = height / ( imageY * unitY );
+		//c.style.background = "red";
+		c.width 		 = width;
+		c.height 		 = height;
+		if ( append )
+			wrapper.append( c );
+		
+		var elem = document.getElementById( "script0" );
+		var ctx = elem.getContext( "2d" );
+		ctx.scale( sX, sY );
+		var s = new bexScript();
+		s.ctx( ctx );
+		s.unit( unitX, unitY );
+		s.image( 0, 0, imageX, imageY, data );
+		scripts.push( s );
+		//s.paint();
+		//script = s;
+		console.log( 'loaded script=', s );
+
+		/**
+		 * Borer
+		 * Loads the borer on top of the script
+		 */
+		var borer;
+		var c = document.createElement( 'canvas' );
+		c.id 			 = 'borer1';
+		//c.style.background = "blue";
+		c.style.position   = "absolute";
+		c.width 		 = width; // full scale image
+		c.height 		 = height; // full scale image
+		var ctx = c.getContext("2d");
+		ctx.scale( sX, sY );
+		wrapper.append( c );
+		borer = new bexBorer();
+		borer.attach( s );
+		borer.canvas( c.id );
+		borer.from( 
+			Math.round
+			( 
+				( ( imageX * imageY ) / 2 ) 
+				+ ( imageX / 2 ) 
+			)
+		);
+		borer.feed( sequence );
+		borer.program( codex );
+		borers.push( borer );
+	}
+
+
+}
+
+
+
+
+var codex = new Array();
+for ( var i = 0; i < codex_basic.length; i++ )
+	codex.push( codex_basic[ i ] );
+for ( var i = 0; i < codex_scan.length; i++ )
+	codex.push( codex_scan[ i ] );
+for ( var i = 0; i < codex_touch.length; i++ )
+	codex.push( codex_touch[ i ] );
+var c = document.getElementById("script");
+var ctx = c.getContext("2d");
+var script = new bexScript();
+script.ctx( ctx );
+script.unit( 5, 5 );
+
+scripts.push( script );
+
+/*
+var sequence = [ 32, 9, 15, 2, 7, 29, 33, 11, 16, 26, 0, 16, 19, 9, 0, 7, 6, 11, 30, 2, 9, 12, 18, 18, 13, 17, 18, 5, 33, 32, 27, 2, 10, 23, 10, 2, 17, 22, 3, 9, 19, 27, 21, 21, 6, 17, 15, 12, 18, 8, 30, 25, 0, 20, 0, 8, 5, 2, 30, 25, 1, 11, 28, 18, 34, 17, 34, 20, 16, 14, 2, 9, 15, 17, 11, 36, 5, 1, 21, 19, 26, 31, 15, 2, 26, 17, 32, 35, 1, 35, 32, 14, 31, 2, 5, 1, 8, 1, 36, 5, 24, 31, 14, 36, 33, 3, 33, 17, 34, 21, 0, 17, 3, 33, 24, 5, 32, 28, 15, 31, 29, 24, 26, 18, 17, 34, 12, 30, 18, 1, 34, 24, 13, 7, 7, 28, 5, 31, 18, 4, 35, 5, 29, 33, 28, 23, 35, 8, 23, 23, 15, 31, 34, 29, 26, 30, 18, 15, 22, 6, 32, 28, 6, 35, 3, 33, 6, 23, 24, 3, 22, 0, 16, 12, 2, 7, 17, 19, 32, 32, 6, 13, 9, 19, 23, 15, 26, 22, 0, 29, 2, 6, 16, 23, 13, 10, 18, 10, 23, 16, 23, 36, 7, 20, 22, 25, 29, 24, 8, 0, 20, 22, 25, 15, 31, 8, 15, 14, 26, 10, 20, 17, 31, 13, 26, 17, 19, 32, 35, 7, 9, 7, 30, 16, 8, 35, 22, 1, 6, 2, 4, 24, 6, 35, 0, 18, 15, 2, 14, 6    ];
+*/
+
+var sequence = [ 17, 28, 19, 9, 13, 20, 24, 15, 0, 35, 23, 24, 13, 23, 26, 33, 35, 6, 9, 0, 35, 15, 10, 5, 21, 17, 3, 7, 27, 12, 8, 34, 18, 11, 10, 34, 1, 14, 7, 30, 11, 3, 4, 31, 28, 5, 3, 27, 33, 17, 7, 16, 26, 20, 23, 26, 16, 14, 3, 23, 1, 3, 19, 20, 1, 36, 26, 15, 13, 23, 24, 0, 21, 31, 19, 26, 30, 10, 32, 14, 35, 26, 33, 23, 9, 5, 0, 6, 7, 24, 19, 24, 15, 24, 28, 23, 9, 0, 36, 19, 21, 6, 7, 13, 31, 17, 33, 20, 18, 3, 17, 20, 4, 24, 21, 9, 20, 14, 14, 7, 13, 7, 16, 7, 22, 6, 25, 18, 36, 21, 31, 21, 11, 5, 28, 8, 23, 12, 5, 9, 19, 13, 35, 34, 8, 27, 15, 24, 13, 3, 5, 18, 20, 19, 27, 6, 13, 6, 18, 34, 28, 29, 16, 30, 12, 2, 29, 2, 14, 31, 28, 6, 16, 20, 27, 8, 3, 9, 1, 29, 26, 18, 25, 32, 6, 24, 20, 21, 9, 5, 17, 3, 9, 20, 29, 9, 11, 32, 26, 10, 4, 36, 10, 35, 34, 22, 1, 35, 11, 29, 5, 19, 22, 17, 16, 1, 3, 17, 14, 11, 7, 35, 7, 17, 20, 1, 25, 17, 1, 22, 2, 4, 8, 17, 13, 10, 33, 2, 29, 30, 18, 34, 35, 11, 29, 13, 3, 7, 4, 8, 22, 16, 21, 4, 17, 2, 3, 3, 32, 17, 28, 22, 26, 19, 14, 6, 8, 33, 22, 8, 23, 32, 21, 36, 5, 32, 15, 13, 12, 35, 16, 7, 27, 35, 23, 7, 29, 34, 12, 30, 33, 10, 11, 10, 23, 26, 29, 15, 6, 14, 16, 3, 30, 22, 28, 7, 3, 30, 3, 27, 1, 21, 13, 22, 17, 18, 33, 28, 25, 8, 28, 17, 18, 30, 35, 24, 26, 5, 16, 8, 22, 6, 6, 3, 22, 21, 35, 5, 13, 2, 2, 1, 22, 3, 25, 17, 29, 16, 1, 22, 20, 33, 26, 7, 29, 7, 13, 31, 34, 9, 21, 17, 15, 5, 32, 25, 30, 21, 27, 1, 21, 14, 33, 12, 15, 12, 2, 2, 29, 15, 5, 32, 1, 5, 27, 9, 9, 34, 5, 14, 30, 10, 20, 31, 13, 29, 14, 1, 33, 34, 15, 1, 36, 13, 19, 28, 18, 8, 15, 3, 19, 10, 34, 12, 26, 16, 8, 0, 27, 24, 8, 8, 19, 9, 8, 33, 7, 19, 9, 30, 3, 29, 1, 18, 6, 9, 12, 5, 35, 30, 8, 10, 22, 14, 22, 23, 34, 35, 24, 0, 24, 6, 4, 35, 16, 8, 3, 19, 22, 21, 33, 19, 33, 10, 33, 12, 9, 33, 28, 33, 22, 5, 31, 1, 26, 33, 30, 27, 7, 14, 27, 20, 25, 19, 30, 8, 8, 14, 31, 12, 33, 1, 13, 9, 15, 12, 19, 11, 12, 24, 5, 23, 20, 31, 28, 16, 24, 28, 10, 8, 19, 36, 24, 2, 8, 31, 30, 26, 7, 3, 23, 18, 26, 6, 7, 12, 30, 0, 26, 16, 24, 13, 18, 3, 17, 24, 29, 3, 18, 15, 31, 10, 10, 20, 30, 3, 27, 36, 30, 14, 32, 0, 31, 15, 24, 14, 19, 13, 21, 12, 29, 17, 28, 10, 21, 25, 7, 26, 6, 6, 29, 4, 4, 34, 25, 17, 23, 25, 14, 34, 22, 25, 11, 6, 26, 16, 17, 17, 21, 12, 2, 2, 20, 10, 18, 8, 23, 17, 16, 1, 36, 1, 14, 35, 4, 25, 5, 0, 36, 6, 5, 21, 8, 28, 11, 34, 6, 8, 9, 19, 22, 14, 11, 12, 33, 36, 17, 14, 32, 24, 36, 31, 10, 30, 11, 3, 24, 24, 22, 12, 6, 34, 5, 17, 20, 10, 1, 29, 27, 6, 29, 28, 10, 11, 12, 11, 7, 6, 3, 11, 5, 27, 17, 27, 33, 13, 35, 28, 0, 25, 36, 27, 31, 22, 28, 11, 15, 0, 25, 33, 12, 23, 13, 25, 27, 21, 26, 29, 6, 15, 9, 5, 25, 26, 6, 21, 2, 17, 6, 6, 4, 35, 28, 29, 16, 6, 3, 33, 21, 3, 18, 29, 6, 33, 34, 3, 23, 5, 8, 16, 4, 12, 28, 31, 25, 14, 12, 8, 22, 13, 27, 20, 14, 18, 21, 17, 22, 30, 11, 34, 26, 34, 22, 35, 22, 24, 22, 28, 17, 19, 1, 22, 15, 8, 23, 11, 15, 12, 11, 22, 25, 12, 23, 33, 12, 30, 2, 21, 33, 12, 14, 8, 19, 25, 3, 6, 23, 16, 2, 10, 12, 18, 35, 17, 3, 15, 19, 33, 4, 20, 6, 31, 26, 24, 34, 6, 1, 32, 3, 11, 1, 1, 7, 19, 23, 18, 34, 9, 17, 19, 19, 9, 19, 26, 35, 22, 10, 19, 34, 10, 12, 23, 1, 8, 32, 31, 23, 29, 22, 36, 8, 26, 31, 10, 5, 24, 7, 22, 19, 24, 22, 26, 0, 10, 7, 21, 8, 29, 9, 10, 16, 33, 34, 2, 12, 18, 24, 33, 22, 10, 1, 20, 28, 23, 12, 23, 22, 11, 27, 30, 23, 26, 13, 3, 30, 30, 25, 21, 16, 4, 20, 16, 14, 12, 3, 28, 34, 27, 20, 13, 14, 2, 18, 5, 21, 5, 18, 4, 4, 19, 16, 28, 35, 22, 14, 21, 9, 11, 33, 27, 9, 26, 1, 16, 5, 17, 13, 25, 8, 20, 1, 19, 3, 32, 10, 18, 20, 24, 7, 8, 19, 34, 33, 7, 28, 10, 34, 5, 12, 24, 22, 35, 3, 14, 9, 9, 21, 16, 2, 13, 28, 8, 25, 24, 21, 8, 4, 31, 31, 13, 26, 30, 10, 18, 18, 31, 3, 26, 18, 29, 27, 4, 20, 32, 25, 30, 8, 15, 14, 32, 10, 15, 25, 12, 23, 16, 34, 32, 31, 26, 34, 9, 6, 29, 34, 35, 2, 18, 20, 24 ];
+
+var borer;
+borer = new bexBorer();
+borer.attach( script );
+borer.canvas( 'borer0' );
+borer.from( 775 );
+borer.feed( sequence );
+borer.program( codex );
+
+borers.push( borer );
+
+setTimeout( colorinfo, 30 );
+function colorinfo()
+{
+	var elem = document.getElementById( 'colorinfo' );
+	elem.innerHTML = '';
+	for ( var x = 0; x < borers.length; x++ )
+	{
+		var b = borers[ x ];
+		//var colors = b.colorInformation;
+		//console.log( 'colorinfo=', colorinfo );
+		var colors = [...b.colorInformation];
+		//console.log( 'colors=', colors );
+		colors.sort( function( a, b ) {
+			return b[ 3 ] - a[ 3 ];
+		} );
+		var c = document.createElement( 'colors' + x );
+		elem.appendChild( c );
+		for ( var i = 0; i < colors.length; i++ )
+		{
+			var rgb = colors[ i ];
+			rgb[ 0 ] = Math.round( rgb[ 0 ] );
+			rgb[ 1 ] = Math.round( rgb[ 1 ] );
+			rgb[ 2 ] = Math.round( rgb[ 2 ] );
+			//c.innerHTML += rgb[ 0 ];
+			var hex = rgbToHex( rgb );
+			c.innerHTML += '<span style="width:75px; height: 75px; float:left;"><div style="background:rgb( ' 
+				+ rgb[ 0 ] + ',' 
+				+ rgb[ 1 ] + ',' 
+				+ rgb[ 2 ] + ' ); width:75px; height: 50px; vertical-align:middle; color:#ffffff;"></div><div style="background:#333333; font-size:12px; color:#ffffff;">' + hex + '</div></span>';
+			c.innerHTML += '';
+		}
+		//console.log( colors );
+	}
+	setTimeout( colorinfo, 30 );
+}
+
+setTimeout( frame, 30 );
+function frame()
+{
+	for ( var x = 0; x < borers.length; x++ )
+	{
+		var b = borers[ x ];
+		for ( var i = 0; i < 100; i++ )
+			b.play();
+		b.paint();
+		//console.log( b );
+	}
+	//console.log( 'script=', script );
+	for ( var x = 0; x < scripts.length; x++ )
+	{
+		var s = scripts[ x ];
+		if ( s.changed )
+			s.paint();
+	}
+	//console.log( 'script after paint=', script );
+	setTimeout( frame, 30 );
+}
+
+loadimage();
+function loadimage()
+{
+	var canvas = document.getElementById( 'image' );
+	
+	base_image = new Image();
+	base_image.src = "hulkhogan.jpg";
+	base_image.onload = function(){
+		console.log( base_image );
+		var imageX = base_image.naturalWidth;
+		var imageY = base_image.naturalHeight;
+		var width = 300;
+		var height = 300;
+		var unitX = 5;
+		var unitY = 5;
+		var sX = width / ( imageX * unitX );
+		var sY = height / ( imageY * unitY );
+		canvas.width = imageX;
+		canvas.height = imageY;
+		context = canvas.getContext('2d');
+		context.drawImage( base_image, 0, 0 );
+		var data = context.getImageData( 0, 0, imageX, imageY );
+		context.clearRect( 0, 0, imageX, imageY );
+		canvas.width = 0;
+		canvas.height = 0;
+		script.image( 0, 0, imageX, imageY, data );
+
+		var elem = document.getElementById( "script" );
+		var ctx = elem.getContext( "2d" );
+		ctx.scale( sX, sY );
+
+		var elem = document.getElementById( "borer0" );
+		var ctx = elem.getContext( "2d" );
+		ctx.scale( sX, sY );
+/*
+		//console.log( data );
+
+		canvas.width = imageX;
+		canvas.height = imageY;
+		context.drawImage( base_image, 
+			0, 0, 
+			imageX,  
+			imageY );
+*/
+  	}
+	
+}
+
+</script>
+<div style="clear:both">Coded by
+<a href="http://turtledna.neocities.org">turtledna</a>
+</div>
+</body>
+</html>
