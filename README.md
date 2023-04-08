@@ -10,4 +10,4 @@ The complexity of the sequence and the image matter, and give different results.
 When the borer runs out of steam it stops, and requires more input to continue ( I will put this in a future example ).
 
 # To run
-Download and extract first, then run index.html. Built using Chrome.
+Download and extract first, then run index.html on Apache server or http://localhost. Built using Chrome.
