@@ -1,4 +1,4 @@
-# Borer Explorer 1D v1.0
+# Borer Explorer 1D v1.0.5
 Borer Explorer is an example of sequenced programming using functions and sequences to read and alter data including images.
 
 ![Example of borer in action](ss.png)
